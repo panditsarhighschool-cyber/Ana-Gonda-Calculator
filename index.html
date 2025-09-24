@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>জমির মাপ ক্যালকুলেটর (আনা/গণ্ডা/কড়া/ক্রান্তি/তিল)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#c0ff2c;color-scheme:dark}
+    body{font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,"Noto Sans Bengali",sans-serif;background:linear-gradient(180deg,#021026 0%,#071226 100%);color:#0e87ff;margin:0;padding:24px}
+    .wrap{max-width:980px;margin:0 auto}
+    h1{font-size:20px;margin:0 0 12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .card{background:rgba(255,255,255,0.03);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    select,input[type=number]{width:100%;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:inherit}
+    .ops{display:flex;gap:8px;margin:12px 0}
+    button{flex:1;padding:10px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#7c3aed);color:#042027;font-weight:700;cursor:pointer}
+    .result{margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))}
+    .row{display:flex;gap:8px}
+    .small{font-size:12px;color:var(--muted)}
+    .symbol{font-family:"Noto Sans Bengali",serif;font-size:18px}
+    .footer{margin-top:14px;color:var(--muted);font-size:13px}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <center>
+    <img src="https://i.ibb.co.com/Gfm99GBR/Picsart-25-09-16-15-11-47-775.png", width="150px", height="150px">
+    </center>
+    <h1 style="text-align: center"> জমি পরিমাপের ক্যালকুলেটর (প্রতীকভিত্তিক)</h1>
+    <div class="grid">
+      <div class="card">
+        <div class="small">প্রথম পরিমাণ (Operand A)</div>
+        <div style="margin-top:8px"><label>আনা (প্রতীক)</label><select id="a_ana"></select></div>
+        <div style="margin-top:8px"><label>গণ্ডা (0-19)</label><select id="a_gonda"></select></div>
+        <div style="margin-top:8px"><label>কড়া (প্রতীক)</label><select id="a_kora"></select></div>
+        <div style="margin-top:8px"><label>ক্রান্তি (প্রতীক)</label><select id="a_kranti"></select></div>
+        <div style="margin-top:8px"><label>তিল (0-19)</label><select id="a_til"></select></div>
+      </div>
+      <div class="card">
+        <div class="small">দ্বিতীয় পরিমাণ (Operand B)</div>
+        <div style="margin-top:8px"><label>আনা (প্রতীক)</label><select id="b_ana"></select></div>
+        <div style="margin-top:8px"><label>গণ্ডা (0-19)</label><select id="b_gonda"></select></div>
+        <div style="margin-top:8px"><label>কড়া (প্রতীক)</label><select id="b_kora"></select></div>
+        <div style="margin-top:8px"><label>ক্রান্তি (প্রতীক)</label><select id="b_kranti"></select></div>
+        <div style="margin-top:8px"><label>তিল (0-19)</label><select id="b_til"></select></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="ops">
+        <button onclick="setOp('+')">যোগ (+)</button>
+        <button onclick="setOp('-')">বিয়োগ (-)</button> <br>
+        <button onclick="setOp('*')">গুন (×)</button>
+        <button onclick="setOp('/')">ভাগ (÷)</button>
+      </div>
+      <div class="row" style="align-items:center">
+        <button style="flex:0 0 180px" onclick="compute()">ফলাফল </button>
+        <div style="margin-left:12px">
+          <div class="small">নির্বাচিত অপারেশন:</div>
+          <div id="chosenOp" class="symbol">+</div>
+        </div>
+      </div>
+      <div id="resultBox" class="result" style="display:none">
+        <div class="small">প্রতীক আকারে ফলাফল:</div>
+        <div id="resultSymbol" class="symbol" style="font-size:20px;margin-top:6px"></div>
+        <div class="small" style="margin-top:8px">বর্ণনামূলক ফলাফল:</div>
+        <div id="resultText" style="margin-top:6px"></div>
+      </div>
+      <center>
+      <div class="footer">[ নোট: গোনা/রূপান্তর গণনা নিয়ম: ১ ভরি = ১৬ আনা; ১ আনা = ২০ গণ্ডা; ১ গণ্ডা = ৪ কড়া; ১ কড়া = ৩ ক্রান্তি; ১ ক্রান্তি = ২০ তিল ]</div>
+      </center>
+    </div>
+  </div>
+<script>
+const anaSymbols={0:'0',1:'/',2:'৵',3:'৶',4:'I',5:'I/',6:'I ৵',7:'I ৶',8:'II',9:'II/',10:'II ৵',11:'II ৶',12:'৸',13:'৸/',14:'৸ ৵',15:'৸ ৶',16:'১৲'};
+const koraSymbols={0:'0',1:'I',2:'II',3:'৸'};
+const krantiSymbols={0:'0',1:'꠳',2:'꠴',3:'3'};
+function populate(){
+  const a_ana=document.getElementById('a_ana'),b_ana=document.getElementById('b_ana');
+  for(let i=0;i<=16;i++){const opt=document.createElement('option');opt.value=i;opt.textContent=(anaSymbols[i]||i)+` (${i} আনা)`;a_ana.appendChild(opt);b_ana.appendChild(opt.cloneNode(true));}
+  const ag=document.getElementById('a_gonda'),bg=document.getElementById('b_gonda');
+  for(let i=0;i<20;i++){let o=document.createElement('option');o.value=i;o.textContent=`${i} গণ্ডা`;ag.appendChild(o);bg.appendChild(o.cloneNode(true));}
+  const ak=document.getElementById('a_kora'),bk=document.getElementById('b_kora');
+  for(let i=0;i<=3;i++){let o=document.createElement('option');o.value=i;o.textContent=(koraSymbols[i]||i)+` (${i} কড়া)`;ak.appendChild(o);bk.appendChild(o.cloneNode(true));}
+  const ar=document.getElementById('a_kranti'),br=document.getElementById('b_kranti');
+  for(let i=0;i<=3;i++){let o=document.createElement('option');o.value=i;o.textContent=(krantiSymbols[i]||i)+` (${i} ক্রান্তি)`;ar.appendChild(o);br.appendChild(o.cloneNode(true));}
+  const at=document.getElementById('a_til'),bt=document.getElementById('b_til');
+  for(let i=0;i<20;i++){let o=document.createElement('option');o.value=i;o.textContent=`${i} তিল`;at.appendChild(o);bt.appendChild(o.cloneNode(true));}
+}
+populate();
+let currentOp='+';
+function setOp(op){currentOp=op;document.getElementById('chosenOp').textContent=op;}
+function getOperand(prefix){
+  const ana=parseInt(document.getElementById(prefix+'_ana').value,10)||0;
+  const gonda=parseInt(document.getElementById(prefix+'_gonda').value,10)||0;
+  const kora=parseInt(document.getElementById(prefix+'_kora').value,10)||0;
+  const kranti=parseInt(document.getElementById(prefix+'_kranti').value,10)||0;
+  const til=parseInt(document.getElementById(prefix+'_til').value,10)||0;
+  return {ana,gonda,kora,kranti,til};
+}
+function toTil(obj){
+  return obj.ana*960 + obj.gonda*240 + obj.kora*80 + obj.kranti*20 + obj.til;
+}
+function fromTil(totalTil){
+  const sign=totalTil<0?-1:1;totalTil=Math.abs(totalTil);
+  let ana=Math.floor(totalTil/960);totalTil%=960;
+  let gonda=Math.floor(totalTil/240);totalTil%=240;
+  let kora=Math.floor(totalTil/80);totalTil%=80;
+  let kranti=Math.floor(totalTil/20);totalTil%=20;
+  let til=totalTil;
+  return {sign,ana,gonda,kora,kranti,til};
+}
+function anaToSymbol(n){if(n===0)return '0';const parts=[];if(n>=16){const full=Math.floor(n/16);parts.push(full+"×১৲");n=n%16;}if(n>0)parts.push(anaSymbols[n]||n);return parts.join(' ');}
+function koraToSymbol(n){return koraSymbols[n]||n;}
+function krantiToSymbol(n){return krantiSymbols[n]||n;}
+function compute(){
+  const A=getOperand('a'),B=getOperand('b');
+  const tA=toTil(A),tB=toTil(B);
+  let res;
+  if(currentOp==='+') res=tA+tB;
+  else if(currentOp==='-') res=tA-tB;
+  else if(currentOp==='*') res=tA*tB;
+  else if(currentOp==='/'){if(tB===0){alert('দ্বিতীয় পরিমাণ শূন্য! ভাগ করা যাবে না।');return;}res=tA/tB;}
+  let display;const isFractional=(currentOp==='/'&&!Number.isInteger(res));
+  if(isFractional){const integerPart=Math.floor(res);const comps=fromTil(integerPart);display={comps,fractional:res-integerPart};}
+  else{const comps=fromTil(Math.round(res));display={comps,fractional:0};}
+  renderResult(display,res);
+}
+function renderResult(display,rawValue){
+  const box=document.getElementById('resultBox');box.style.display='block';
+  const sym=document.getElementById('resultSymbol');
+  const txt=document.getElementById('resultText');
+  const c=display.comps;const sign=c.sign<0?'-':'';
+  const anaPart=anaToSymbol(c.ana);
+  const gondaPart=c.gonda>0?c.gonda+'':'0';
+  const koraPart=koraToSymbol(c.kora);
+  const krantiPart=krantiToSymbol(c.kranti);
+  const tilPart=c.til;
+  let pieces=[];
+  if(c.ana) pieces.push(anaPart);
+  if(c.gonda) pieces.push(gondaPart);
+  if(c.kora) pieces.push(koraPart);
+  if(c.kranti) pieces.push(krantiPart);
+  if(c.til) pieces.push(c.til);
+  if(pieces.length===0) pieces.push('0 তিল');
+  sym.textContent=sign+pieces.join(' ');
+  let desc=`${sign}${c.ana} আনা  ${c.gonda} গণ্ডা  ${c.kora} কড়া  ${c.kranti} ক্রান্তি  ${c.til} তিল`;
+  if(display.fractional && display.fractional!==0){desc+=`  (অনুষঙ্গিক দশমিক ফলাফল: ${rawValue.toFixed(6)})`;}
+  txt.textContent=desc;
+}
+</script>
+<P style="text-align: center;">
+২ ক্রান্তি = ১ কড়া,
+৩ কড়া = ১ গণ্ডা,
+২০ গণ্ডা = ১ আনা,
+১৬ আনা = ১ সম্পূর্ণ (বা ১ একক জমি)</P>
+<hr> <center>
+<P>Designed and Developed By: Subrato Das</P>
+</center>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>
